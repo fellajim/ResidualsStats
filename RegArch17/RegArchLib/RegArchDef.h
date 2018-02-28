@@ -98,7 +98,8 @@ namespace RegArchLib {
 		eNormal,
 		eStudent,
 		eGed, // Generalized error distribution http://en.wikipedia.org/wiki/Exponential_power_distribution
-		eSkewt	// Skewed Student-t http://cran.r-project.org/doc/packages/skewt.pdf
+		eSkewt,	// Skewed Student-t http://cran.r-project.org/doc/packages/skewt.pdf
+		eMixNormal // Mixed Normal distribution
 	}eDistrTypeEnum ;
 
 

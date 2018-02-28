@@ -21,7 +21,7 @@ namespace RegArchLib {
 	class cMixNormal : public cAbstResiduals
 	{
 	public:
-		cMixNormal(double theDof, bool theSimulFlag = true); ///< A constructor
+		cMixNormal(double p, double sigma_1, double sigma_2,  bool theSimulFlag = true); ///< A constructor
 		cMixNormal(cDVector* theDistrParameter = NULL, bool theSimulFlag = true);	///< A constructor
 		virtual ~cMixNormal(); ///< A simple destructor
 		virtual cAbstResiduals* PtrCopy() const; /// < Return a copy of *this

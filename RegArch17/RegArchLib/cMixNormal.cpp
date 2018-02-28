@@ -5,35 +5,40 @@
 */
 namespace RegArchLib {
 	/*!
-	* \fn cStudentResiduals::cStudentResiduals(double theDof, bool theSimulFlag)
-	* \param double theDof: number of degrees of freedom
+	* \fn cMixNormal::cMixNormal(double p, double sigma_1, double sigma_2, bool theSimulFlag)
+	* \param double p: bernoulli proba
+	* \param double sigma_1: std of the first variable
+	* \param double sigma_2: std of the seconde variable
 	* \param bool theSimulFlag: true if created for simulation
 	* \details: mvBool is initialised by ce cAbstResiduals constructor
 	*/
-	cMixNormal::cMixNormal(double theDof, bool theSimulFlag) : cAbstResiduals(eStudent, NULL, theSimulFlag)
+	cMixNormal::cMixNormal(double p, double sigma_1, double sigma_2, bool theSimulFlag) : cAbstResiduals(eMixNormal, NULL, theSimulFlag)
 	{
-		mDistrParameter.ReAlloc(1);
-		mDistrParameter[0] = theDof;
-		MESS_CREAT("cStudentResiduals")
+		mDistrParameter.ReAlloc(3);
+		mDistrParameter[0] = p;
+		mDistrParameter[1] = sigma_1*sigma_1;
+		mDistrParameter[2] = sigma_2*sigma_2;
+
+		MESS_CREAT("cMixNormal")
 	}
 
 	/*!
-	* \fn cStudentResiduals::cStudentResiduals(const cDVector* theDistrParameter, bool theSimulFlag): cAbstResiduals(eStudent, theDistrParameter, theSimulFlag)
+	* \fn cMixNormal::cMixNormal(cDVector* theDistrParameter, bool theSimulFlag) : cAbstResiduals(eStudent, theDistrParameter, theSimulFlag)
 	* \param const cDVector* theDistrParameter: theDistrParameter[0] = d.o.f.
 	* \param bool theSimulFlag: true if created for simulation
 	* \details: mvBool is initialised by ce cAbstResiduals constructor
 	*/
 	cMixNormal::cMixNormal(cDVector* theDistrParameter, bool theSimulFlag) : cAbstResiduals(eStudent, theDistrParameter, theSimulFlag)
 	{
-		MESS_CREAT("cStudentResiduals")
+		MESS_CREAT("cMixNormal")
 	}
 
 	/*!
-	* \fn cStudentResiduals::~cStudentResiduals()
+	* \fn cMixNormal::~cMixNormal()
 	*/
 	cMixNormal::~cMixNormal()
 	{
-		MESS_DESTR("cStudentResiduals")
+		MESS_DESTR("cMixNormal")
 	}
 
 	/*!
@@ -58,40 +63,42 @@ namespace RegArchLib {
 	}
 
 	/*!
-	* \fn void cStudentResiduals::Generate(const uint theNSample, cDVector& theYt) const
+	* \fn void cMixNormal::Generate(const uint theNSample, cDVector& theYt) const
 	* \param const uint theNSample: the sample size
 	* \param cDVector& theYt: the output vector
 	*/
 	void cMixNormal::Generate(const uint theNSample, cDVector& theYt) const
 	{
 		theYt.ReAlloc(theNSample);
-		if (mDistrParameter[0] <= 2.0)
-			throw cError("wrong d.o.f.");
-
-		double myStd = sqrt(mDistrParameter[0] / (mDistrParameter[0] - 2.0));
-		for (register uint t = 0; t < theNSample; t++)
-			theYt[t] = gsl_ran_tdist(mtR, mDistrParameter[0]) / myStd;
+		int mut;
+		for (register uint t = 0; t < theNSample; t++) {
+			mut = gsl_ran_bernoulli(mtR, mDistrParameter[0]);
+			theYt[t] = mut* gsl_ran_gaussian(mtR, mDistrParameter[1]) + (1-mut)*gsl_ran_gaussian(mtR, mDistrParameter[2]);
+		}
 	}
 
 	/*!
-	* \fn void cStudentResiduals::Print(ostream& theOut) const
+	* \fn vvoid cMixNormal::Print(ostream& theOut) const
 	* \param ostream& theOut: the output stream, default cout.
 	*/
 #ifndef _RDLL_
 	void cMixNormal::Print(ostream& theOut) const
 	{
-		theOut << "Conditional Student Distribution with " << mDistrParameter[0] << " d. o. f." << endl;
+		theOut << "Conditional Mixed Normal Distribution with p= " << mDistrParameter[0] << ", sigma_1= "
+			<< mDistrParameter[1] << "and sigma_2=" << mDistrParameter[2] << endl;
 	}
 #else
-	void cStudentResiduals::Print(void)
+	void cMixNormal::Print(void)
 	{
-		Rprintf("Conditional Student Distribution with %f d.o.f.\n", mDistrParameter[0]);
+		Rprintf("Conditional Mixed Normal Distribution with p =%f, sigma_1= %f and sigma_2=%f .\n", mDistrParameter[0], mDistrParameter[1], mDistrParameter[2]);
 	}
 #endif // _RDLL_
 
 	void cMixNormal::SetDefaultInitPoint(void)
 	{
-		mDistrParameter[0] = 10.0;
+		mDistrParameter[0] = 0.5;
+		mDistrParameter[1] = 0.2;
+		mDistrParameter[2] = 0.3;
 	}
 
 	static double StudentLogDensity(double theX, double theDof)
@@ -107,13 +114,13 @@ namespace RegArchLib {
 	}
 
 	/*!
-	* \fn double cStudentResiduals::GetNParam(void) const
+	* \fn uint cMixNormal::GetNParam(void) const
 	* \param void.
 	* \brief return 1: One parameter for St(n) residuals.
 	*/
 	uint cMixNormal::GetNParam(void) const
 	{
-		return 1;
+		return 3;
 	}
 
 	/*!
