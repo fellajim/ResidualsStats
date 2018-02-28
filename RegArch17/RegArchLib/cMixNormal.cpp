@@ -101,16 +101,11 @@ namespace RegArchLib {
 		mDistrParameter[2] = 0.3;
 	}
 
-	static double StudentLogDensity(double theX, double theDof)
-	{
-		return log(gsl_ran_tdist_pdf(theX, theDof));
-	}
 
 	double cMixNormal::LogDensity(double theX) const
 	{
-		double myStd = sqrt(mDistrParameter[0] / (mDistrParameter[0] - 2.0));
-		return StudentLogDensity(theX*myStd, mDistrParameter[0]) + log(myStd);
-
+		double mydensity= mDistrParameter[0] * gsl_ran_gaussian_pdf(theX, mDistrParameter[1]) + (1 - mDistrParameter[0])* gsl_ran_gaussian_pdf(theX, mDistrParameter[2]);
+		return log(mydensity);
 	}
 
 	/*!
@@ -124,7 +119,7 @@ namespace RegArchLib {
 	}
 
 	/*!
-	* \fn static void StudentGradLogDensity(double theX, double theDof, cDVector& theGrad)
+	* \fn static void MixNormalGradLogDensity(double theX, double theDof, cDVector& theGrad)
 	* \brief Compute the derivative of log density of a Student distribution (unstandardized)
 	* with respect to the random variable (theGrad[0]) \e and the gradient
 	* of log density with respect to the model parameters (other components in theGrad)
@@ -167,7 +162,7 @@ namespace RegArchLib {
 	}
 
 	/*!
-	* \fn void cStudentResiduals::ComputeGrad(uint theDate, const cRegArchValue& theValue, cRegArchGradient& theGradData)
+	* \fn void cMixNormal::ComputeGrad(uint theDate, const cRegArchValue& theValue, cRegArchGradient& theGradData) const
 	* \brief Compute the derivative of log density with respect to the random variable (theGradData[0]) \e and the gradient
 	* of log density with respect to the model parameters (other components in theGradData)
 	* \param theDate uint: time at which gradient is computed
