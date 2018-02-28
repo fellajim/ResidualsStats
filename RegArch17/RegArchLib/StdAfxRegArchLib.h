@@ -47,6 +47,7 @@
 #include "cStudentResiduals.h"
 #include "cGedResiduals.h"
 #include "cSkewtResiduals.h"
+#include "cMixNormal.h"
 
 #include "GslAndNloptOptim.h"
 
