@@ -101,11 +101,17 @@ namespace RegArchLib {
 		mDistrParameter[2] = 0.3;
 	}
 
+	static double MixNormalLogDensity(double theX, double p, double sigma1, double sigma2)
+	{
+		double mydensity = p * gsl_ran_gaussian_pdf(theX, sigma1) + (1 - p)* gsl_ran_gaussian_pdf(theX, sigma2);
+		return log(mydensity);
+	}
 
 	double cMixNormal::LogDensity(double theX) const
 	{
-		double mydensity= mDistrParameter[0] * gsl_ran_gaussian_pdf(theX, mDistrParameter[1]) + (1 - mDistrParameter[0])* gsl_ran_gaussian_pdf(theX, mDistrParameter[2]);
-		return log(mydensity);
+		double sigmaCarre = mDistrParameter[0] * mDistrParameter[1] * mDistrParameter[1] + (1 - mDistrParameter[0])*mDistrParameter[2] * mDistrParameter[2];
+		double mydensity= 0.5*log(sigmaCarre)+ MixNormalLogDensity(sqrt(sigmaCarre)*theX, mDistrParameter[0], mDistrParameter[1], mDistrParameter[2]);
+		return mydensity;
 	}
 
 	/*!
@@ -127,39 +133,34 @@ namespace RegArchLib {
 	* \param theDof double: value of the distribution parameter
 	* \param theGrad cDVector&: concatenation of derivatives with respect to the random variable and the model parameters
 	*/
-	static void MixNormalGradLogDensity(double theX, double theDof, cDVector& theGrad)
+	static void MixNormalGradLogDensity(double theX, const cDVector& theDistrParam, cDVector& theGrad, uint theBegIndex)
 	{
-		double myt2 = theX * theX;
-		double myAux1 = myt2 + theDof;
-		theGrad[0] = -(theDof + 1)*theX / myAux1;
-		double myAux2 = log(myAux1) - gsl_sf_psi((theDof + 1) / 2.0) - log(theDof) + gsl_sf_psi(theDof / 2.0);
-		theGrad[1] = -0.5*(myAux2 + (1 - myt2) / myAux1);
+		double dDensityP = -1 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2],1)+1 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensitySigmax = theDistrParam[0] / pow(theDistrParam[1], 2) * (pow(theX, 2) / pow(theDistrParam[1], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensitySigmay = (1- theDistrParam[0]) / pow(theDistrParam[2], 2) * (pow(theX, 2) / pow(theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
+		double mydensity = theDistrParam[0] * gsl_ran_gaussian_pdf(theX, theDistrParam[1]) + (1 - theDistrParam[0])* gsl_ran_gaussian_pdf(theX, theDistrParam[2]);
+		theGrad[theBegIndex] = dDensityP / mydensity;
+		theGrad[theBegIndex+1] = dDensitySigmax / mydensity;
+		theGrad[theBegIndex+2] = dDensitySigmay / mydensity;
+	}
+
+	static void GradLogDensity(double theX, cDVector& theGrad, const cDVector& theDistrParam, uint theBegIndex)
+	{
+		MixNormalGradLogDensity(theX, theDistrParam, theGrad, theBegIndex);
+		double sigmaCarre = theDistrParam[0] * theDistrParam[1] * theDistrParam[1] + (1 - theDistrParam[0])*theDistrParam[2] * theDistrParam[2];
+		double part1 = 0.5*(pow(theDistrParam[1], 2) - pow(theDistrParam[2], 2));
+		double part2 = theDistrParam[0] * theDistrParam[1];
+		double part3 = (1 - theDistrParam[0])* theDistrParam[2];
+		theGrad[theBegIndex] = part1/sigmaCarre + (part1/sqrt(sigmaCarre))*theGrad[theBegIndex];
+		theGrad[theBegIndex+1] = part2/sigmaCarre + (part2 * theX  / sqrt(sigmaCarre))*theGrad[theBegIndex+1];
+		theGrad[theBegIndex+2] = part3/sigmaCarre + (part2*theX/sqrt(sigmaCarre))*theGrad[theBegIndex+2];
 	}
 
 	double cMixNormal::DiffLogDensity(double theX) const
 	{
-		double myDof = this->mDistrParameter[0];
-		return -(myDof + 1)*theX / (theX*theX + myDof - 2.0);
+		return .0;
 	}
 
-	/*!
-	* \fn static void GradLogDensity(double theX, cDVector& theGrad, cDVector& theDistrParam)
-	* \brief Compute the derivative of log density with respect to the random variable (theGrad[0]) \e and the gradient
-	* of log density with respect to the model parameters (other components in theGrad)
-	* \param theX double: value of the random variable
-	* \param theGrad cDVector&: concatenation of derivatives with respect to the random variable and the model parameters
-	* \param theDistrParam cDVector&: value of the distribution parameters
-	*/
-	static void GradLogDensity(double theX, cDVector& theGrad, const cDVector& theDistrParam, uint theBegIndex)
-	{
-		double	myDof = theDistrParam[0];
-		double myt2 = theX*theX;
-		double myAux1 = myt2 + myDof - 2;
-		double myRes = -log((myt2 + myDof - 2) / (myDof - 2)) / 2;
-		myRes += (gsl_sf_psi((myDof + 1) / 2.0E+0) - gsl_sf_psi(myDof / 2)) / 2;
-		myRes += (myDof*myt2 - myDof + 2) / ((myDof - 2)*(myt2 + myDof - 2)) / 2;
-		theGrad[theBegIndex] = myRes;
-	}
 
 	/*!
 	* \fn void cMixNormal::ComputeGrad(uint theDate, const cRegArchValue& theValue, cRegArchGradient& theGradData) const
