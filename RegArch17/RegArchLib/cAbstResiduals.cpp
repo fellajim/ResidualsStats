@@ -226,6 +226,9 @@ namespace RegArchLib {
 		case eGed:
 			return TemplateCreateRealCondResiduals<cGedResiduals>(theAbstCondResiduals);
 			break;
+		case eMixNormal:
+			return TemplateCreateRealCondResiduals<cMixNormal>(theAbstCondResiduals);
+			break;
 		case eSkewt:
 			return TemplateCreateRealCondResiduals<cSkewtResiduals>(theAbstCondResiduals);
 			break;

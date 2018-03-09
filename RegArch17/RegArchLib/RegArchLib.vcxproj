@@ -434,6 +434,7 @@
     <ClCompile Include="cGedResiduals.cpp" />
     <ClCompile Include="cLinReg.cpp" />
     <ClCompile Include="cMa.cpp" />
+    <ClCompile Include="cMixNormal.cpp" />
     <ClCompile Include="cNormResiduals.cpp" />
     <ClCompile Include="cPolynome.cpp" />
     <ClCompile Include="cRegArchGradient.cpp" />
