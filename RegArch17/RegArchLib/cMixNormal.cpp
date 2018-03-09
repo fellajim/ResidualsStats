@@ -234,13 +234,22 @@ namespace RegArchLib {
 
 	static void HessLogDensity(double theX, cDMatrix& theHess, const cDVector& theDistrParam, uint theBegIndex)
 	{
-		double myDof = theDistrParam[0];
-		double myt2 = theX*theX;
-		double myAux1 = myt2 + myDof - 2;
-		double myRes = ((myDof - 4)*myt2*myt2 - (myDof - 2)*(4 * myt2 - myDof + 2)) / (2 * pow((myDof - 2)*myAux1, 2));
-		myRes += (gsl_sf_psi_1((myDof + 1) / 2) - gsl_sf_psi_1(myDof / 2)) / 4;
-		theHess[theBegIndex][theBegIndex] = myRes;
+		double dDensityP = -1 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1) + 1 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensitySigmax = theDistrParam[0] / pow(theDistrParam[1], 2) * (pow(theX, 2) / pow(theDistrParam[1], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensitySigmay = (1 - theDistrParam[0]) / pow(theDistrParam[2], 2) * (pow(theX, 2) / pow(theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
+
+		double myP = theDistrParam[0];
+		double mySigmaX = theDistrParam[1];
+		double mySigmaY = theDistrParam[2];
+		double sigmaCarre = myP*mySigmaX*mySigmaX + (1 - myP)*mySigmaY*mySigmaY;
+		double mydensity = theDistrParam[0] * gsl_ran_gaussian_pdf(theX*sqrt(sigmaCarre), theDistrParam[1]) + (1 - theDistrParam[0])* gsl_ran_gaussian_pdf(theX*sqrt(sigmaCarre), theDistrParam[2]);
+
+		double myDiff2P1 = -0.5*pow(mySigmaX*mySigmaX - mySigmaY*mySigmaY, 2) / (sigmaCarre*sigmaCarre);
+		double myDiff2p2 = -0.25*pow(mySigmaX*mySigmaX - mySigmaY*mySigmaY, 2)*theX / pow(sqrt(sigmaCarre), 3) * dDensityP/mydensity;
+		double myDiffp3 = -0.25*pow(mySigmaX*mySigmaX - mySigmaY*mySigmaY, 2)*theX*theX / sigmaCarre * pow( dDensityP / mydensity,2) / pow(mydensity,2);
+		theHess[theBegIndex][theBegIndex] = myDiff2P1 + myDiff2p2 + myDiffp3;
 	}
+
 
 	void cMixNormal::ComputeHess(uint theDate, const cRegArchValue& theData, cRegArchGradient& theGradData, cRegArchHessien& theHessData, cAbstResiduals* theResiduals)
 	{
