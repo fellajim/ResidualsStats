@@ -16,8 +16,8 @@ namespace RegArchLib {
 	{
 		mDistrParameter.ReAlloc(3);
 		mDistrParameter[0] = p;
-		mDistrParameter[1] = sigma_1*sigma_1;
-		mDistrParameter[2] = sigma_2*sigma_2;
+		mDistrParameter[1] = sigma_1;
+		mDistrParameter[2] = sigma_2;
 
 		MESS_CREAT("cMixNormal")
 	}
@@ -220,9 +220,12 @@ namespace RegArchLib {
 
 	double cMixNormal::Diff2LogDensity(double theX) const
 	{
-		double myDof = mDistrParameter[0];
-		double myt2 = theX*theX;
-		return (myDof + 1)*(myt2 - myDof + 2) / pow(myt2 + myDof - 2, 2);
+		double p = mDistrParameter[0];
+		double sigmaX = mDistrParameter[1];
+		double sigmaY = mDistrParameter[2];
+		double a = sqrt(p * sigmaX*sigmaX + (1 - p)* sigmaY*sigmaY);
+		double fax = MixNormalLogDensity(theX, a, sigmaX, sigmaY);
+		return (a*a*((a*theX*a*theX) - 1)*fax) / (pow(a*theX*fax, 2));
 	}
 
 	void cMixNormal::GradDiffLogDensity(double theX, const cDVector& theDistrParam, cDVector& theGrad)
