@@ -73,7 +73,7 @@ namespace RegArchLib {
 		int mut;
 		for (register uint t = 0; t < theNSample; t++) {
 			mut = gsl_ran_bernoulli(mtR, mDistrParameter[0]);
-			theYt[t] = mut* gsl_ran_gaussian(mtR, mDistrParameter[1]) + (1-mut)*gsl_ran_gaussian(mtR, mDistrParameter[2]);
+			theYt[t] = mut* gsl_ran_gaussian(mtR, mDistrParameter[1]) + (1 - mut)*gsl_ran_gaussian(mtR, mDistrParameter[2]);
 		}
 	}
 
@@ -110,7 +110,7 @@ namespace RegArchLib {
 	double cMixNormal::LogDensity(double theX) const
 	{
 		double sigmaCarre = mDistrParameter[0] * mDistrParameter[1] * mDistrParameter[1] + (1 - mDistrParameter[0])*mDistrParameter[2] * mDistrParameter[2];
-		double mydensity= 0.5*log(sigmaCarre)+ MixNormalLogDensity(sqrt(sigmaCarre)*theX, mDistrParameter[0], mDistrParameter[1], mDistrParameter[2]);
+		double mydensity = 0.5*log(sigmaCarre) + MixNormalLogDensity(sqrt(sigmaCarre)*theX, mDistrParameter[0], mDistrParameter[1], mDistrParameter[2]);
 		return mydensity;
 	}
 
@@ -135,13 +135,13 @@ namespace RegArchLib {
 	*/
 	static void MixNormalGradLogDensity(double theX, const cDVector& theDistrParam, cDVector& theGrad, uint theBegIndex)
 	{
-		double dDensityP = -1 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2],1)+1 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensityP = -1 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1) + 1 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
 		double dDensitySigmax = theDistrParam[0] / pow(theDistrParam[1], 2) * (pow(theX, 2) / pow(theDistrParam[1], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
-		double dDensitySigmay = (1- theDistrParam[0]) / pow(theDistrParam[2], 2) * (pow(theX, 2) / pow(theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
+		double dDensitySigmay = (1 - theDistrParam[0]) / pow(theDistrParam[2], 2) * (pow(theX, 2) / pow(theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
 		double mydensity = theDistrParam[0] * gsl_ran_gaussian_pdf(theX, theDistrParam[1]) + (1 - theDistrParam[0])* gsl_ran_gaussian_pdf(theX, theDistrParam[2]);
 		theGrad[theBegIndex] = dDensityP / mydensity;
-		theGrad[theBegIndex+1] = dDensitySigmax / mydensity;
-		theGrad[theBegIndex+2] = dDensitySigmay / mydensity;
+		theGrad[theBegIndex + 1] = dDensitySigmax / mydensity;
+		theGrad[theBegIndex + 2] = dDensitySigmay / mydensity;
 	}
 
 	static void GradLogDensity(double theX, cDVector& theGrad, const cDVector& theDistrParam, uint theBegIndex)
@@ -151,9 +151,9 @@ namespace RegArchLib {
 		double part1 = 0.5*(pow(theDistrParam[1], 2) - pow(theDistrParam[2], 2));
 		double part2 = theDistrParam[0] * theDistrParam[1];
 		double part3 = (1 - theDistrParam[0])* theDistrParam[2];
-		theGrad[theBegIndex] = part1/sigmaCarre + (part1/sqrt(sigmaCarre))*theGrad[theBegIndex];
-		theGrad[theBegIndex+1] = part2/sigmaCarre + (part2 * theX  / sqrt(sigmaCarre))*theGrad[theBegIndex+1];
-		theGrad[theBegIndex+2] = part3/sigmaCarre + (part2*theX/sqrt(sigmaCarre))*theGrad[theBegIndex+2];
+		theGrad[theBegIndex] = part1 / sigmaCarre + (part1 / sqrt(sigmaCarre))*theGrad[theBegIndex];
+		theGrad[theBegIndex + 1] = part2 / sigmaCarre + (part2 * theX / sqrt(sigmaCarre))*theGrad[theBegIndex + 1];
+		theGrad[theBegIndex + 2] = part3 / sigmaCarre + (part2*theX / sqrt(sigmaCarre))*theGrad[theBegIndex + 2];
 	}
 
 	double cMixNormal::DiffLogDensity(double theX) const
@@ -186,6 +186,8 @@ namespace RegArchLib {
 		if (theDestVect.GetSize() < theIndex)
 			throw cError("Wrong size");
 		theDestVect[theIndex] = mDistrParameter[0];
+		theDestVect[theIndex + 1] = mDistrParameter[1];
+		theDestVect[theIndex + 2] = mDistrParameter[2];
 	}
 
 	void cMixNormal::VectorToRegArchParam(const cDVector& theSrcVect, uint theIndex)
@@ -193,6 +195,8 @@ namespace RegArchLib {
 		if (theIndex >= theSrcVect.GetSize())
 			throw cError("Wrong size");
 		mDistrParameter[0] = theSrcVect[theIndex];
+		mDistrParameter[1] = theSrcVect[theIndex + 1];
+		mDistrParameter[2] = theSrcVect[theIndex + 2];
 	}
 
 	/*
@@ -200,6 +204,7 @@ namespace RegArchLib {
 	*/
 	double cMixNormal::ComputeEspAbsEps(void)
 	{
+		// TO DO
 		double myDof = mDistrParameter[0];
 		return gsl_sf_gamma((myDof + 1.0) / 2.0) / gsl_sf_gamma(myDof / 2.0)
 			*2.0*sqrt(myDof - 2.0) / (myDof - 1.0) / SQRT_PI;
@@ -210,6 +215,7 @@ namespace RegArchLib {
 	*/
 	void cMixNormal::ComputeGradBetaEspAbsEps(cDVector& theGrad)
 	{
+		// TO DO
 		double myDof = this->mDistrParameter[0],
 			myAux = myDof*myDof - 3 * myDof + 2;
 
@@ -230,27 +236,64 @@ namespace RegArchLib {
 
 	void cMixNormal::GradDiffLogDensity(double theX, const cDVector& theDistrParam, cDVector& theGrad)
 	{
-		double myDof = theDistrParam[0];
+		// TO DO
+		double p = theDistrParam[0];
+		double sigmaX = theDistrParam[1];
+		double sigmaY = theDistrParam[2];
 		double myt2 = theX*theX;
 		theGrad[0] = -(theX*(myt2 - 3)) / pow(myt2 + myDof - 2, 2);
 	}
 
 	static void HessLogDensity(double theX, cDMatrix& theHess, const cDVector& theDistrParam, uint theBegIndex)
 	{
-		double dDensityP = -1 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1) + 1 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
-		double dDensitySigmax = theDistrParam[0] / pow(theDistrParam[1], 2) * (pow(theX, 2) / pow(theDistrParam[1], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
-		double dDensitySigmay = (1 - theDistrParam[0]) / pow(theDistrParam[2], 2) * (pow(theX, 2) / pow(theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
-
 		double myP = theDistrParam[0];
 		double mySigmaX = theDistrParam[1];
 		double mySigmaY = theDistrParam[2];
+
+		double dDensityP = -1 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1) + 1 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensitySigmax = theDistrParam[0] / pow(theDistrParam[1], 2) * (pow(theX, 2) / pow(theDistrParam[1], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensitySigmay = (1 - theDistrParam[0]) / pow(theDistrParam[2], 2) * (pow(theX, 2) / pow(theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
+		double d2DensitySigmax = myP*gsl_ran_gaussian_pdf(theX / mySigmaX, 1) / pow(mySigmaX, 3)*(2 - 5 * pow(theX / mySigmaX, 2) + pow(theX / (mySigmaX*mySigmaX), 2));
+		double d2DensitySigmay = (1 - myP)*gsl_ran_gaussian_pdf(theX / mySigmaY, 1) / pow(mySigmaY, 3)*(2 - 5 * pow(theX / mySigmaY, 2) + pow(theX / (mySigmaY*mySigmaY), 2));
+		double d2DensitySigmaxP = dDensitySigmax / myP;
+		double d2DensitySigmayP = -dDensitySigmay / (1 - myP);
+
 		double sigmaCarre = myP*mySigmaX*mySigmaX + (1 - myP)*mySigmaY*mySigmaY;
 		double mydensity = theDistrParam[0] * gsl_ran_gaussian_pdf(theX*sqrt(sigmaCarre), theDistrParam[1]) + (1 - theDistrParam[0])* gsl_ran_gaussian_pdf(theX*sqrt(sigmaCarre), theDistrParam[2]);
 
 		double myDiff2P1 = -0.5*pow(mySigmaX*mySigmaX - mySigmaY*mySigmaY, 2) / (sigmaCarre*sigmaCarre);
-		double myDiff2p2 = -0.25*pow(mySigmaX*mySigmaX - mySigmaY*mySigmaY, 2)*theX / pow(sqrt(sigmaCarre), 3) * dDensityP/mydensity;
-		double myDiffp3 = -0.25*pow(mySigmaX*mySigmaX - mySigmaY*mySigmaY, 2)*theX*theX / sigmaCarre * pow( dDensityP / mydensity,2) / pow(mydensity,2);
+		double myDiff2p2 = -0.25*pow(mySigmaX*mySigmaX - mySigmaY*mySigmaY, 2)*theX / pow(sqrt(sigmaCarre), 3) * dDensityP / mydensity;
+		double myDiffp3 = -0.25*pow(mySigmaX*mySigmaX - mySigmaY*mySigmaY, 2)*theX*theX / sigmaCarre * pow(dDensityP / mydensity, 2) / pow(mydensity, 2);
 		theHess[theBegIndex][theBegIndex] = myDiff2P1 + myDiff2p2 + myDiffp3;
+
+		double myDiff2sxP1 = myP / sigmaCarre - (2 * myP*myP*mySigmaX*mySigmaX) / (sigmaCarre*sigmaCarre);
+		double myDiff2sxP2 = (myP*theX / sqrt(sigmaCarre) + (mySigmaX*mySigmaX*myP*myP) / pow(sigmaCarre, 3 / 2))*dDensitySigmax / mydensity;
+		double myDiff2sxP3 = (pow(mySigmaX*myP*theX, 2) / sigmaCarre)*(d2DensitySigmax / mydensity - pow(dDensitySigmax / mydensity, 2));
+		theHess[theBegIndex + 1][theBegIndex + 1] = myDiff2sxP1 + myDiff2sxP2 + myDiff2sxP3;
+
+		double myDiff2syP1 = (1 - myP) / sigmaCarre - (2 * (1 - myP)*(1 - myP)*mySigmaY*mySigmaY) / (sigmaCarre*sigmaCarre);
+		double myDiff2syP2 = ((1 - myP)*theX / sqrt(sigmaCarre) + (mySigmaY*mySigmaY*(1 - myP)*(1 - myP)) / pow(sigmaCarre, 3 / 2))*dDensitySigmay / mydensity;
+		double myDiff2syP3 = (pow(mySigmaY*(1 - myP)*theX, 2) / sigmaCarre)*(d2DensitySigmay / mydensity - pow(dDensitySigmay / mydensity, 2));
+		theHess[theBegIndex + 2][theBegIndex + 2] = myDiff2syP1 + myDiff2syP2 + myDiff2syP3;
+
+		double myDiff2psxP1 = mySigmaX*pow(mySigmaY / sigmaCarre, 2);
+		double myDiff2psxP2 = ((myP * (mySigmaX*mySigmaX - mySigmaY*mySigmaY) + 2 * mySigmaY*mySigmaY)*theX*mySigmaX*dDensitySigmax) / (2 * pow(myP*(mySigmaX*mySigmaX - mySigmaY*mySigmaY) + mySigmaY*mySigmaY, 3 / 2)*mydensity);
+		double myDiff2psxP3 = (mySigmaX*myP*theX*theX*(mySigmaX*mySigmaX - mySigmaY*mySigmaY) / (2 * sigmaCarre))*(d2DensitySigmaxP / mydensity - dDensitySigmax*dDensityP / pow(mydensity, 2));
+		theHess[theBegIndex][theBegIndex + 1] = myDiff2psxP1 + myDiff2psxP2 + myDiff2psxP3;
+		theHess[theBegIndex + 1][theBegIndex] = theHess[theBegIndex][theBegIndex + 1];
+
+		double myDiff2psyP1 = -mySigmaY*pow(mySigmaX / sigmaCarre, 2);
+		double myDiff2psyP2 = -((myP * (mySigmaX*mySigmaX - mySigmaY*mySigmaY) + mySigmaY*mySigmaY + mySigmaX*mySigmaX)*theX*mySigmaY*dDensitySigmay) / (2 * pow(myP*(mySigmaX*mySigmaX - mySigmaY*mySigmaY) + mySigmaY*mySigmaY, 3 / 2)*mydensity);
+		double myDiff2psyP3 = (mySigmaY*(1 - myP)*theX*theX*(mySigmaX*mySigmaX - mySigmaY*mySigmaY) / (2 * sigmaCarre))*(d2DensitySigmayP / mydensity - dDensitySigmay*dDensityP / pow(mydensity, 2));
+		theHess[theBegIndex][theBegIndex + 2] = myDiff2psyP1 + myDiff2psyP2 + myDiff2psyP3;
+		theHess[theBegIndex + 2][theBegIndex] = theHess[theBegIndex][theBegIndex + 2];
+
+		double myDiff2sxsyP1 = 2 * myP*mySigmaX*(1 - myP)*mySigmaY / pow(sigmaCarre, 2);
+		double myDiff2sxsyP2 = mySigmaX*mySigmaY*myP*(1 - myP)*theX*dDensitySigmax / (pow(sigmaCarre, 3 / 2)*mydensity);
+		double myDiff2sxsyP3 = (mySigmaX*myP*theX*theX*(1 - myP)*mySigmaY / sigmaCarre)*-dDensitySigmax*dDensitySigmay / pow(mydensity, 2);
+		theHess[theBegIndex + 1][theBegIndex + 2] = myDiff2sxsyP1 + myDiff2sxsyP2 + myDiff2sxsyP3;
+		theHess[theBegIndex + 2][theBegIndex + 1] = theHess[theBegIndex + 1][theBegIndex + 2];
+
 	}
 
 
@@ -267,7 +310,9 @@ namespace RegArchLib {
 	void cMixNormal::GetParamName(uint theIndex, char** theName)
 	{
 		uint myIndex = theIndex;
-		sprintf(theName[myIndex++], "Student d.o.f.");
+		sprintf(theName[myIndex++], "p");
+		sprintf(theName[myIndex++], "sigma_x");
+		sprintf(theName[myIndex++], "sigma_y");
 	}
 
 
