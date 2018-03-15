@@ -199,15 +199,12 @@ namespace RegArchLib {
 		mDistrParameter[2] = theSrcVect[theIndex + 2];
 	}
 
-	/*
-	* (2*sqrt(n-2)*gamma((n+1)/2))/(sqrt(PI)*(n-1)*gamma(n/2))
-	*/
 	double cMixNormal::ComputeEspAbsEps(void)
 	{
-		// TO DO
-		double myDof = mDistrParameter[0];
-		return gsl_sf_gamma((myDof + 1.0) / 2.0) / gsl_sf_gamma(myDof / 2.0)
-			*2.0*sqrt(myDof - 2.0) / (myDof - 1.0) / SQRT_PI;
+		double p = mDistrParameter[0];
+		double sigmaX = mDistrParameter[1];
+		double sigmaY = mDistrParameter[2];
+		return 2 / sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
 	}
 
 	/*
@@ -236,12 +233,12 @@ namespace RegArchLib {
 
 	void cMixNormal::GradDiffLogDensity(double theX, const cDVector& theDistrParam, cDVector& theGrad)
 	{
-		// TO DO
 		double p = theDistrParam[0];
 		double sigmaX = theDistrParam[1];
 		double sigmaY = theDistrParam[2];
-		double myt2 = theX*theX;
-		theGrad[0] = -(theX*(myt2 - 3)) / pow(myt2 + myDof - 2, 2);
+		double sigmaNorm = sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
+		double density = p*gsl_ran_gaussian_pdf(theX*sigmaNorm, sigmaX) + (1 - p)*gsl_ran_gaussian_pdf(theX*sigmaNorm, sigmaY);
+		theGrad[0] = -(sigmaNorm / density)*(p*theX*gsl_ran_gaussian_pdf(theX, sigmaX / sigmaNorm) / sigmaX + (1 - p)*theX*gsl_ran_gaussian_pdf(theX, sigmaY / sigmaNorm) / sigmaY);
 	}
 
 	static void HessLogDensity(double theX, cDMatrix& theHess, const cDVector& theDistrParam, uint theBegIndex)
