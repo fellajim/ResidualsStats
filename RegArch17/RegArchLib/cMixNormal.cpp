@@ -135,7 +135,7 @@ namespace RegArchLib {
 	*/
 	static void MixNormalGradLogDensity(double theX, const cDVector& theDistrParam, cDVector& theGrad, uint theBegIndex)
 	{
-		double dDensityP = -1 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1) + 1 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensityP = -1.0 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1) + 1.0 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
 		double dDensitySigmax = theDistrParam[0] / pow(theDistrParam[1], 2) * (pow(theX, 2) / pow(theDistrParam[1], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
 		double dDensitySigmay = (1 - theDistrParam[0]) / pow(theDistrParam[2], 2) * (pow(theX, 2) / pow(theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
 		double mydensity = theDistrParam[0] * gsl_ran_gaussian_pdf(theX, theDistrParam[1]) + (1 - theDistrParam[0])* gsl_ran_gaussian_pdf(theX, theDistrParam[2]);
