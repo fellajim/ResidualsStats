@@ -235,8 +235,12 @@ namespace RegArchLib {
 		double sigmaX = theDistrParam[1];
 		double sigmaY = theDistrParam[2];
 		double sigmaNorm = sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
+		double a = (sigmaX*sigmaX - sigmaY*sigmaY) / (2 * sigmaNorm);
 		double density = p*gsl_ran_gaussian_pdf(theX*sigmaNorm, sigmaX) + (1 - p)*gsl_ran_gaussian_pdf(theX*sigmaNorm, sigmaY);
-		theGrad[0] = -(sigmaNorm / density)*(p*theX*gsl_ran_gaussian_pdf(theX, sigmaX / sigmaNorm) / sigmaX + (1 - p)*theX*gsl_ran_gaussian_pdf(theX, sigmaY / sigmaNorm) / sigmaY);
+		double dDensityP = (gsl_ran_gaussian_pdf(theX*sigmaNorm / sigmaY, 1) / pow(sigmaY, 3) - gsl_ran_gaussian_pdf(theX*sigmaNorm / sigmaX, 1) / pow(sigmaX, 3))*theX*sigmaNorm*theX*a;
+		double dDensitySigmax = 0;
+		double dDensitySigmay = 0;
+		theGrad[0] = a*DiffLogDensity(sigmaNorm*theX) + sigmaNorm*(dDensityP / density - DiffLogDensity(sigmaNorm*theX) * 1); // to do
 	}
 
 	static void HessLogDensity(double theX, cDMatrix& theHess, const cDVector& theDistrParam, uint theBegIndex)
