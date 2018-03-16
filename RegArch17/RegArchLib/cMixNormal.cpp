@@ -208,12 +208,8 @@ namespace RegArchLib {
 		return 1 / sigma * sqrt(2.0 / PI) * ((1 - p)* sigmaY + p*sigmaX);
 	}
 
-	/*
-	*  [(n^2 - 3*n + 2)*(psi0((n+1)/2) - psi0(n/2)) - n + 3]/[sqrt(PI)*sqrt(n-2)*(n-1)^2]*gamma((n+1)/2)/gamma(n/2)
-	*/
 	void cMixNormal::ComputeGradBetaEspAbsEps(cDVector& theGrad)
 	{
-		// TO DO
 		double p = mDistrParameter[0];
 		double sigmaX = mDistrParameter[1];
 		double sigmaY = mDistrParameter[2];
