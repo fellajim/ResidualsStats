@@ -204,7 +204,8 @@ namespace RegArchLib {
 		double p = mDistrParameter[0];
 		double sigmaX = mDistrParameter[1];
 		double sigmaY = mDistrParameter[2];
-		return 2 / sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
+		double sigma = sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
+		return 1/sigma * sqrt(2.0/PI) * ( (1-p)* sigmaY+ p*sigmaX);
 	}
 
 	/*
