@@ -135,9 +135,9 @@ namespace RegArchLib {
 	*/
 	static void MixNormalGradLogDensity(double theX, const cDVector& theDistrParam, cDVector& theGrad, uint theBegIndex)
 	{
-		double dDensityP = -1.0 / theDistrParam[2] * gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1) + 1.0 / theDistrParam[1] * gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
-		double dDensitySigmax = theDistrParam[0] / pow(theDistrParam[1], 2) * (pow(theX, 2) / pow(theDistrParam[1], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
-		double dDensitySigmay = (1 - theDistrParam[0]) / pow(theDistrParam[2], 2) * (pow(theX, 2) / pow(theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
+		double dDensityP = -gsl_ran_gaussian_pdf(theX, theDistrParam[2]) + gsl_ran_gaussian_pdf(theX, theDistrParam[1]);
+		double dDensitySigmax = (theDistrParam[0] / pow(theDistrParam[1], 2)) * (pow(theX / theDistrParam[1], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[1], 1);
+		double dDensitySigmay = ((1 - theDistrParam[0]) / pow(theDistrParam[2], 2)) * (pow(theX / theDistrParam[2], 2) - 1)*gsl_ran_gaussian_pdf(theX / theDistrParam[2], 1);
 		double mydensity = theDistrParam[0] * gsl_ran_gaussian_pdf(theX, theDistrParam[1]) + (1 - theDistrParam[0])* gsl_ran_gaussian_pdf(theX, theDistrParam[2]);
 		theGrad[theBegIndex] = dDensityP / mydensity;
 		theGrad[theBegIndex + 1] = dDensitySigmax / mydensity;
@@ -146,12 +146,12 @@ namespace RegArchLib {
 
 	static void GradLogDensity(double theX, cDVector& theGrad, const cDVector& theDistrParam, uint theBegIndex)
 	{
-		MixNormalGradLogDensity(theX, theDistrParam, theGrad, theBegIndex);
 		double sigmaCarre = theDistrParam[0] * theDistrParam[1] * theDistrParam[1] + (1 - theDistrParam[0])*theDistrParam[2] * theDistrParam[2];
+		MixNormalGradLogDensity(theX*sqrt(sigmaCarre), theDistrParam, theGrad, theBegIndex);
 		double part1 = 0.5*(pow(theDistrParam[1], 2) - pow(theDistrParam[2], 2));
 		double part2 = theDistrParam[0] * theDistrParam[1];
 		double part3 = (1 - theDistrParam[0])* theDistrParam[2];
-		theGrad[theBegIndex] = part1 / sigmaCarre + (part1 / sqrt(sigmaCarre))*theGrad[theBegIndex];
+		theGrad[theBegIndex] = part1 / sigmaCarre + (part1*theX / sqrt(sigmaCarre))*theGrad[theBegIndex];
 		theGrad[theBegIndex + 1] = part2 / sigmaCarre + (part2 * theX / sqrt(sigmaCarre))*theGrad[theBegIndex + 1];
 		theGrad[theBegIndex + 2] = part3 / sigmaCarre + (part2*theX / sqrt(sigmaCarre))*theGrad[theBegIndex + 2];
 	}
