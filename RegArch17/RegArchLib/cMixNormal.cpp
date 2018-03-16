@@ -205,7 +205,7 @@ namespace RegArchLib {
 		double sigmaX = mDistrParameter[1];
 		double sigmaY = mDistrParameter[2];
 		double sigma = sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
-		return 1/sigma * sqrt(2.0/PI) * ( (1-p)* sigmaY+ p*sigmaX);
+		return 1 / sigma * sqrt(2.0 / PI) * ((1 - p)* sigmaY + p*sigmaX);
 	}
 
 	void cMixNormal::ComputeGradBetaEspAbsEps(cDVector& theGrad)
@@ -237,10 +237,14 @@ namespace RegArchLib {
 		double sigmaNorm = sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
 		double a = (sigmaX*sigmaX - sigmaY*sigmaY) / (2 * sigmaNorm);
 		double density = p*gsl_ran_gaussian_pdf(theX*sigmaNorm, sigmaX) + (1 - p)*gsl_ran_gaussian_pdf(theX*sigmaNorm, sigmaY);
+		double dDensity = -(p*theX*gsl_ran_gaussian_pdf(sigmaNorm*theX / sigmaX, 1) / pow(sigmaX, 3) + (1 - p)*theX*gsl_ran_gaussian_pdf(sigmaNorm*theX / sigmaY, 1) / pow(sigmaY, 3));
 		double dDensityP = (gsl_ran_gaussian_pdf(theX*sigmaNorm / sigmaY, 1) / pow(sigmaY, 3) - gsl_ran_gaussian_pdf(theX*sigmaNorm / sigmaX, 1) / pow(sigmaX, 3))*theX*sigmaNorm*theX*a;
 		double dDensitySigmax = 0;
 		double dDensitySigmay = 0;
-		theGrad[0] = a*DiffLogDensity(sigmaNorm*theX) + sigmaNorm*(dDensityP / density - DiffLogDensity(sigmaNorm*theX) * 1); // to do
+		theGrad[0] = a*DiffLogDensity(sigmaNorm*theX) + sigmaNorm*(dDensityP / density - DiffLogDensity(sigmaNorm*theX)*(gsl_ran_gaussian_pdf(sigmaNorm*theX / sigmaX) - gsl_ran_gaussian_pdf(sigmaNorm*theX / sigmaY)) / density);
+		// to do
+		theGrad[1] = 0;
+		theGrad[2] = 0;
 	}
 
 	static void HessLogDensity(double theX, cDMatrix& theHess, const cDVector& theDistrParam, uint theBegIndex)
