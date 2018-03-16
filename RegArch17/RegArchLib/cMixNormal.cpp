@@ -304,7 +304,7 @@ namespace RegArchLib {
 
 	void cMixNormal::ComputeHess(uint theDate, const cRegArchValue& theData, cRegArchGradient& theGradData, cRegArchHessien& theHessData, cAbstResiduals* theResiduals)
 	{
-		cDVector myGradDiffLogDens = cDVector(1);
+		cDVector myGradDiffLogDens = cDVector(3);
 		GradDiffLogDensity(theData.mEpst[theDate], mDistrParameter, myGradDiffLogDens);
 		uint myBegIndex = theHessData.GetNMeanParam() + theHessData.GetNVarParam();
 		theHessData.mCurrentGradDiffLogDensity[myBegIndex] = myGradDiffLogDens[0];
