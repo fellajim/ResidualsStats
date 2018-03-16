@@ -158,10 +158,12 @@ namespace RegArchLib {
 
 	double cMixNormal::DiffLogDensity(double theX) const
 	{
-		double diffDensityYPart = -(1 - mDistrParameter[0])*theX / pow(mDistrParameter[2], 3) * gsl_ran_gaussian_pdf(theX / mDistrParameter[2], 1);
-		double diffDensityXPart = -mDistrParameter[0] * theX / pow(mDistrParameter[1], 3) * gsl_ran_gaussian_pdf(theX / mDistrParameter[1], 1);
-		double mydensity = mDistrParameter[0] * gsl_ran_gaussian_pdf(theX, mDistrParameter[1]) + (1 - mDistrParameter[0])* gsl_ran_gaussian_pdf(theX, mDistrParameter[2]);
-		double result = (diffDensityXPart + diffDensityYPart) / mydensity;
+		double p = mDistrParameter[0];
+		double sigmaX = mDistrParameter[1];
+		double sigmaY = mDistrParameter[2];
+		double sigmaNorm = sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
+		double density = p*gsl_ran_gaussian_pdf(theX*sigmaNorm, sigmaX) + (1 - p)*gsl_ran_gaussian_pdf(theX*sigmaNorm, sigmaY);
+		double result = -(sigmaNorm*sigmaNorm / density)*(p*theX*gsl_ran_gaussian_pdf(theX*sigmaNorm / sigmaX, 1) / pow(sigmaX, 3) + (1 - p)*theX*gsl_ran_gaussian_pdf(theX* sigmaNorm / sigmaY, 1) / pow(sigmaY, 3));
 		return result;
 	}
 
