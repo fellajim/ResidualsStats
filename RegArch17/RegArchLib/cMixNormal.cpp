@@ -205,7 +205,7 @@ namespace RegArchLib {
 		double sigmaX = mDistrParameter[1];
 		double sigmaY = mDistrParameter[2];
 		double sigma = sqrt(p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY);
-		return 1/sigma * sqrt(2.0/PI) * ( (1-p)* sigmaY+ p*sigmaX);
+		return 1 / sigma * sqrt(2.0 / PI) * ((1 - p)* sigmaY + p*sigmaX);
 	}
 
 	/*
@@ -214,12 +214,13 @@ namespace RegArchLib {
 	void cMixNormal::ComputeGradBetaEspAbsEps(cDVector& theGrad)
 	{
 		// TO DO
-		double myDof = this->mDistrParameter[0],
-			myAux = myDof*myDof - 3 * myDof + 2;
-
-		theGrad[0] = (myAux*gsl_sf_psi((myDof + 1) / 2.0) - myAux*gsl_sf_psi(myDof / 2.0) - myDof + 3.0)
-			*gsl_sf_gamma((myDof + 1) / 2.0)
-			/ (SQRT_PI*sqrt(myDof - 2)*(myDof*myDof - 2 * myDof + 1)*gsl_sf_gamma(myDof / 2.0));
+		double p = mDistrParameter[0];
+		double sigmaX = mDistrParameter[1];
+		double sigmaY = mDistrParameter[2];
+		double sigma = p*sigmaX*sigmaX + (1 - p)*sigmaY*sigmaY;
+		theGrad[0] = sqrt(2 / PI)*((sigmaX - sigmaY) / sigma - (sigmaX*sigmaX - sigmaY*sigmaY)*(p*sigmaX + (1 - p)*sigmaY) / pow(sigma, 3 / 2));
+		theGrad[1] = sqrt(2 / PI)*(p / sigma - p*sigmaX*(p*sigmaX + (1 - p)*sigmaY) / pow(sigma, 3 / 2));
+		theGrad[2] = sqrt(2 / PI)*((1 - p) / sigma - (1 - p)*sigmaY*(p*sigmaX + (1 - p)*sigmaY) / pow(sigma, 3 / 2));
 	}
 
 	double cMixNormal::Diff2LogDensity(double theX) const
